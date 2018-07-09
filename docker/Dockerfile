@@ -1,5 +1,7 @@
 FROM couchdb:2.1.1
 
+ENV PATH=$PATH:/opt/couchdb/bin
+
 # Replace original docker-entrypoint.sh with our custom one
 COPY ./docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh && \
