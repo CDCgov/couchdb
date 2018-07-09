@@ -13,3 +13,5 @@ RUN chmod +x /docker-entrypoint.sh && \
                   /usr/local/etc/couchdb && \
     chmod 664 /usr/local/etc/couchdb/*.ini && \
     chmod 775 /usr/local/etc/couchdb/*.d
+
+USER 1001
