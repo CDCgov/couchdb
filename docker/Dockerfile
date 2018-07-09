@@ -1,4 +1,4 @@
-FROM couchdb:1.6.1
+FROM couchdb:1.7.1
 
 # Replace original docker-entrypoint.sh with our custom one
 COPY ./docker-entrypoint.sh /
