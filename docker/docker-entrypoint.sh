@@ -14,7 +14,7 @@
 # This script has been modified from the original to run under an arbitrary
 # user ID on OpenShift v3.
 
-set -e
+set -ex
 
 # first arg is `-something` or `+something`
 if [ "${1#-}" != "$1" ] || [ "${1#+}" != "$1" ]; then
