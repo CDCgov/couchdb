@@ -10,24 +10,54 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations under
 # the License.
-#
-# This script has been modified from the original to run under an arbitrary
-# user ID on OpenShift v3.
 
 set -e
 
+# first arg is `-something` or `+something`
+if [ "${1#-}" != "$1" ] || [ "${1#+}" != "$1" ]; then
+	set -- /opt/couchdb/bin/couchdb "$@"
+fi
+
+# first arg is the bare word `couchdb`
 if [ "$1" = 'couchdb' ]; then
-	if [ "$COUCHDB_USER" ] && [ "$COUCHDB_PASSWORD" ]; then
-		# Create admin
-		printf "[admins]\n%s = %s\n" "$COUCHDB_USER" "$COUCHDB_PASSWORD" > /usr/local/etc/couchdb/local.d/docker.ini
-		#chown couchdb:couchdb /usr/local/etc/couchdb/local.d/docker.ini
+	shift
+	set -- /opt/couchdb/bin/couchdb "$@"
+fi
+
+if [ "$1" = '/opt/couchdb/bin/couchdb' ]; then
+	# we need to set the permissions here because docker mounts volumes as root
+	chown -fR couchdb:couchdb /opt/couchdb || true
+
+	chmod -fR 0770 /opt/couchdb/data || true
+
+        find /opt/couchdb/etc -name \*.ini -exec chmod -f 664 {} \;
+	chmod -f 775 /opt/couchdb/etc/*.d || true
+
+	if [ ! -z "$NODENAME" ] && ! grep "couchdb@" /opt/couchdb/etc/vm.args; then
+		echo "-name couchdb@$NODENAME" >> /opt/couchdb/etc/vm.args
 	fi
 
-	printf "[httpd]\nport = %s\nbind_address = %s\n" ${COUCHDB_HTTP_PORT:=5984} ${COUCHDB_HTTP_BIND_ADDRESS:=0.0.0.0} > /usr/local/etc/couchdb/local.d/bind_address.ini
-	#chown couchdb:couchdb /usr/local/etc/couchdb/local.d/bind_address.ini
+	# Ensure that CouchDB will write custom settings in this file
+	touch /opt/couchdb/etc/local.d/docker.ini
+
+	if [ "$COUCHDB_USER" ] && [ "$COUCHDB_PASSWORD" ]; then
+		# Create admin only if not already present
+		if ! grep -Pzoqr "\[admins\]\n$COUCHDB_USER =" /opt/couchdb/etc/local.d/*.ini; then
+			printf "\n[admins]\n%s = %s\n" "$COUCHDB_USER" "$COUCHDB_PASSWORD" >> /opt/couchdb/etc/local.d/docker.ini
+		fi
+	fi
+
+	if [ "$COUCHDB_SECRET" ]; then
+		# Set secret only if not already present
+		if ! grep -Pzoqr "\[couch_httpd_auth\]\nsecret =" /opt/couchdb/etc/local.d/*.ini; then
+			printf "\n[couch_httpd_auth]\nsecret = %s\n" "$COUCHDB_SECRET" >> /opt/couchdb/etc/local.d/docker.ini
+		fi
+	fi
+
+	chown -f couchdb:couchdb /opt/couchdb/etc/local.d/docker.ini || true
 
 	# if we don't find an [admins] section followed by a non-comment, display a warning
-	if ! grep -Pzoqr '\[admins\]\n[^;]\w+' /usr/local/etc/couchdb; then
+        if ! grep -Pzoqr '\[admins\]\n[^;]\w+' /opt/couchdb/etc/default.d/*.ini /opt/couchdb/etc/local.d/*.ini; then
 		# The - option suppresses leading tabs but *not* spaces. :)
 		cat >&2 <<-'EOWARN'
 			****************************************************
@@ -43,8 +73,8 @@ if [ "$1" = 'couchdb' ]; then
 		EOWARN
 	fi
 
-	#exec gosu couchdb "$@"
-	exec couchdb "$@"
+
+	exec gosu couchdb "$@"
 fi
 
 exec "$@"
