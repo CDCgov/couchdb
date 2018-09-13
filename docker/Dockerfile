@@ -6,7 +6,6 @@ RUN chmod +x /docker-entrypoint.sh && \
     chown -R couchdb:root /opt/couchdb && \
     chmod -R 0770 /opt/couchdb/data && \
     chmod 664 /opt/couchdb/etc/*.ini && \
-    chmod 664 /opt/couchdb/etc/local.d/*.ini && \
     chmod 775 /opt/couchdb/etc/*.d
 
 USER 1001
