@@ -62,7 +62,7 @@ if [ "$1" = 'couchdb' ]; then
 	fi
 
 	#exec gosu couchdb "$@"
-	exec "$@"
+	exec couchdb "$@"
 fi
 
 exec "$@"
