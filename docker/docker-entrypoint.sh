@@ -74,7 +74,7 @@ if [ "$1" = '/opt/couchdb/bin/couchdb' ]; then
 
 
 	#exec gosu couchdb "$@"
-	exec couchdb "$@"
+	exec bin/couchdb "$@"
 fi
 
 exec "$@"
