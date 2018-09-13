@@ -9,6 +9,4 @@ RUN chmod +x /docker-entrypoint.sh && \
     chmod 775 /opt/couchdb/etc/*.d \
               /opt/couchdb/var/log
 
-# enable debug logging temporarily
-RUN ["/bin/sed", "-i", "-e", "/^level/ {c \\\nlevel = debug\n}", "/opt/couchdb/etc/default.ini"]
 USER 1001

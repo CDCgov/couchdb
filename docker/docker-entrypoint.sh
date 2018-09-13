@@ -14,7 +14,7 @@
 # This script has been modified from the original to run under an arbitrary
 # user ID on OpenShift v3.
 
-set -ex
+set -e
 
 # first arg is `-something` or `+something`
 if [ "${1#-}" != "$1" ] || [ "${1#+}" != "$1" ]; then
@@ -74,7 +74,7 @@ if [ "$1" = '/opt/couchdb/bin/couchdb' ]; then
 
 
 	#exec gosu couchdb "$@"
-	exec bin/couchdb "$@"
+	exec "$@"
 fi
 
 exec "$@"
